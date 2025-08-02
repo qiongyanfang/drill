@@ -15,7 +15,7 @@
             }"
           >
             <span class="part-label">
-              {{ props.numberMode ? (index + 1).toString() : (part.name || `Part ${index + 1}`) }}
+              {{ part.name || `Part ${index + 1}` }}
             </span>
           </div>
         </div>
@@ -51,20 +51,12 @@ interface Props {
   selectedPart: string
   isPlaying: boolean
   bodyParts: BodyPartData[]
-  numberMode: boolean
 }
 
 const props = defineProps<Props>()
 
 const isPartActive = (partName: string): boolean => {
-  if (props.numberMode) {
-    // In number mode, compare by index + 1
-    const partIndex = props.bodyParts.findIndex(part => part.name === partName)
-    const partNumber = (partIndex + 1).toString()
-    return props.selectedPart === partNumber && props.isPlaying
-  } else {
-    return props.selectedPart === partName && props.isPlaying
-  }
+  return props.selectedPart === partName && props.isPlaying
 }
 </script>
 
@@ -98,10 +90,10 @@ const isPartActive = (partName: string): boolean => {
 
 .body-parts-grid {
   position: absolute;
-  top: 0;
+  top: 15%;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 20%;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(3, 1fr);
@@ -193,9 +185,9 @@ const isPartActive = (partName: string): boolean => {
 }
 
 .part-label {
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   font-weight: bold;
-  color: #8B4513;
+  color: #6d3107;
   text-align: center;
   line-height: 1.2;
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
@@ -262,35 +254,35 @@ const isPartActive = (partName: string): boolean => {
 
 .left-arm {
   top: 25%;
-  left: 15%;
-  transform: rotate(-15deg);
+  left: 25%;
+  transform: rotate(15deg);
 }
 
 .right-arm {
   top: 25%;
-  right: 15%;
-  transform: rotate(15deg);
+  right: 25%;
+  transform: rotate(-15deg);
 }
 
 .leg {
   position: absolute;
-  width: 25px;
-  height: 150px;
+  width: 35px;
+  height: 200px;
   border: 2px solid #DEB887;
   border-radius: 12px;
   background: rgba(255, 228, 181, 0.3);
 }
 
 .left-leg {
-  bottom: 5%;
+  bottom: 15%;
   left: 35%;
-  transform: rotate(-5deg);
+  transform: rotate(5deg);
 }
 
 .right-leg {
-  bottom: 5%;
+  bottom: 15%;
   right: 35%;
-  transform: rotate(5deg);
+  transform: rotate(-5deg);
 }
 
 @media (max-width: 768px) {
@@ -310,7 +302,7 @@ const isPartActive = (partName: string): boolean => {
   }
   
   .part-label {
-    font-size: 0.5rem;
+    font-size: 0.6rem;
   }
   
   .head-outline {
@@ -330,7 +322,7 @@ const isPartActive = (partName: string): boolean => {
   
   .leg {
     width: 20px;
-    height: 110px;
+    height: 130px;
   }
 }
 
@@ -351,7 +343,7 @@ const isPartActive = (partName: string): boolean => {
   }
   
   .part-label {
-    font-size: 0.4rem;
+    font-size: 0.8rem;
   }
   
   .head-outline {
@@ -371,7 +363,7 @@ const isPartActive = (partName: string): boolean => {
   
   .leg {
     width: 16px;
-    height: 90px;
+    height: 150px;
   }
 }
 </style> 

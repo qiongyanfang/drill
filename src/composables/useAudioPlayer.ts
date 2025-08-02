@@ -20,7 +20,7 @@ export function useAudioPlayer() {
       
       // Configure speech settings
       utterance.rate = 1.2 // Slightly faster for speed
-      utterance.pitch = 1.0
+      utterance.pitch = 1.2
       utterance.volume = 1.0
       
       // Try to use a female voice for better clarity
