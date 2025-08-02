@@ -15,7 +15,7 @@
              }"
            >
                            <span class="corner-label">
-                {{ props.numberMode ? (index + 1).toString() : (corner.name || `Corner ${index + 1}`) }}
+                {{ corner.name || `Corner ${index + 1}` }}
               </span>
            </div>
          </div>
@@ -57,20 +57,12 @@ interface Props {
   selectedCorner: string
   isPlaying: boolean
   corners: CornerData[]
-  numberMode: boolean
 }
 
 const props = defineProps<Props>()
 
 const isCornerActive = (cornerName: string): boolean => {
-  if (props.numberMode) {
-    // In number mode, compare by index + 1
-    const cornerIndex = props.corners.findIndex(corner => corner.name === cornerName)
-    const cornerNumber = (cornerIndex + 1).toString()
-    return props.selectedCorner === cornerNumber && props.isPlaying
-  } else {
-    return props.selectedCorner === cornerName && props.isPlaying
-  }
+  return props.selectedCorner === cornerName && props.isPlaying
 }
 
 
@@ -87,7 +79,7 @@ const isCornerActive = (cornerName: string): boolean => {
 .court-wrapper {
   position: relative;
   width: 600px;
-  height: 400px;
+  height: 600px;
   transform: rotateX(10deg);
   transform-style: preserve-3d;
 }
@@ -116,11 +108,13 @@ const isCornerActive = (cornerName: string): boolean => {
   gap: 25%;
   padding: 20px;
   z-index: 6;
+  align-items: center;
+  justify-items: center;
 }
 
 .corner {
-  width: 100%;
-  height: 100%;
+  width: 80%;
+  height: 80%;
   border: 3px solid #1B5E20;
   border-radius: 50%;
   display: flex;
@@ -129,8 +123,17 @@ const isCornerActive = (cornerName: string): boolean => {
   background: rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   cursor: pointer;
-  min-width: 60px;
-  min-height: 60px;
+  min-width: 35px;
+  min-height: 35px;
+  position: relative;
+}
+
+/* Left align first column corners */
+.corner:nth-child(3n+1) {
+  justify-self: start;
+}
+.corner:nth-child(3n) {
+  justify-self: end;
 }
 
 .corner.active {
@@ -157,9 +160,9 @@ const isCornerActive = (cornerName: string): boolean => {
 }
 
 .corner-label {
-  font-size: 0.7rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  color: #1B5E20;
+  color: #1a1403;
   text-align: center;
   line-height: 1.2;
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
@@ -288,7 +291,7 @@ const isCornerActive = (cornerName: string): boolean => {
 @media (max-width: 768px) {
   .court-wrapper {
     width: 400px;
-    height: 300px;
+    height: 500px;
   }
   
   .corners-grid {
@@ -297,19 +300,19 @@ const isCornerActive = (cornerName: string): boolean => {
   }
   
   .corner {
-    min-width: 50px;
-    min-height: 50px;
+    width: 60px;
+    height: 60px;
   }
   
   .corner-label {
-    font-size: 0.6rem;
+    font-size: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
   .court-wrapper {
     width: 300px;
-    height: 200px;
+    height: 400px;
   }
   
   .corners-grid {
@@ -317,13 +320,6 @@ const isCornerActive = (cornerName: string): boolean => {
     padding: 10px;
   }
   
-  .corner {
-    min-width: 35px;
-    min-height: 35px;
-  }
-  
-  .corner-label {
-    font-size: 0.5rem;
-  }
+
 }
 </style> 

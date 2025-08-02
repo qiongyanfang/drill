@@ -25,25 +25,41 @@
         <span class="mode-text">🏸 Court</span>
       </label>
     </div>
-    <div class="interval-controls">
-      <div class="interval-input-group">
-        <label for="interval-time">Interval Time (ms):</label>
-        <input
-          id="interval-time"
-          v-model.number="intervalTime"
-          type="number"
-          min="100"
-          max="60000"
-          step="100"
-          :disabled="isIntervalRunning"
-          class="interval-input"
-          @keydown.up.prevent="intervalTime = Math.min(intervalTime + 100, 60000)"
-          @keydown.down.prevent="intervalTime = Math.max(intervalTime - 100, 100)"
-        />
+    <div class="controls-container">
+      <div class="interval-controls"  v-show="!isIntervalRunning">
+        <div class="interval-input-group">
+          <label for="interval-time">Interval Time (ms):</label>
+          <input
+            id="interval-time"
+            v-model.number="intervalTime"
+            type="number"
+            min="100"
+            max="60000"
+            step="100"
+            :disabled="isIntervalRunning"
+            class="interval-input"
+            @keydown.up.prevent="intervalTime = Math.min(intervalTime + 100, 60000)"
+            @keydown.down.prevent="intervalTime = Math.max(intervalTime - 100, 100)"
+          />
+        </div>
+        <div class="interval-input-group">
+          <label for="total-time">Total Time (minutes):</label>
+          <input
+            id="total-time"
+            v-model.number="totalTimeMinutes"
+            type="number"
+            min="1"
+            max="120"
+            step="1"
+            :disabled="isIntervalRunning"
+            class="interval-input"
+            @keydown.up.prevent="totalTimeMinutes = Math.min(totalTimeMinutes + 1, 120)"
+            @keydown.down.prevent="totalTimeMinutes = Math.max(totalTimeMinutes - 1, 1)"
+          />
+        </div>
       </div>
-
       <!-- Display Mode Toggle -->
-      <div class="display-mode-toggle">
+      <div class="display-mode-toggle" v-show="!isIntervalRunning">
         <label class="mode-label">
           <input
             type="checkbox"
@@ -51,10 +67,10 @@
             :disabled="isIntervalRunning || isPlaying"
             class="mode-checkbox"
           />
-          <span class="mode-text">Number Mode</span>
+          <span class="mode-text">Show {{ trainingMode === "court" ? "corners" : "body parts" }} as Numbers</span>
         </label>
       </div>
-      <div class="corner-customization">
+      <div class="corner-customization" v-show="!isIntervalRunning">
         <h3 @click="toggleCustomizationVisibility" class="customization-header">
           {{
             trainingMode === "court"
@@ -147,7 +163,7 @@
             Stop
           </button>
       </div>
-      <div class="keyboard-hint">💡 Press <kbd>Space</kbd> to start/stop</div>
+      <div v-show="false" class="keyboard-hint">💡 Press <kbd>Space</kbd> to start/stop</div>
     </div>
 
     <div class="court-container">
@@ -156,7 +172,7 @@
         :selectedCorner="selectedCorner"
         :isPlaying="isPlaying"
         :corners="customCorners"
-      />
+       />
       <HumanBody
         v-if="trainingMode === 'body'"
         :selectedPart="selectedCorner"
@@ -168,17 +184,24 @@
       Selected {{ trainingMode === "court" ? "Corner" : "Body Part" }}:
       {{ selectedCorner }}
     </div>
-    <div v-if="isIntervalRunning" class="interval-status">
-      <div class="timer-display">
-        Next corner in: {{ formatTime(timeRemaining) }}
-      </div>
-      <div class="progress-bar">
-        <div
-          class="progress-fill"
-          :style="{ width: progressPercentage + '%' }"
-        ></div>
-      </div>
-    </div>
+         <div v-if="isIntervalRunning" class="interval-status">
+       <div class="timer-display">
+         <div>Next {{ trainingMode === "court" ? "corner" : "body part" }} in: {{ formatTime(timeRemaining) }}</div>
+         <div>Total time remaining: {{ formatTotalTime(totalTimeRemaining) }}</div>
+       </div>
+       <div class="progress-bar">
+         <div
+           class="progress-fill"
+           :style="{ width: progressPercentage + '%' }"
+         ></div>
+       </div>
+       <div class="total-progress-bar">
+         <div
+           class="total-progress-fill"
+           :style="{ width: totalProgressPercentage + '%' }"
+         ></div>
+       </div>
+     </div>
     <div v-if="false && audioStatus" :class="['audio-status', audioStatus.type]">
       {{ audioStatus.message }}
     </div>
@@ -198,16 +221,18 @@ const audioStatus = ref<{ type: "playing" | "error"; message: string } | null>(
 );
 
 // Interval timer state
-const intervalTime = ref(1000); // Default to 5 seconds (5000ms)
+const intervalTime = ref(1000); // Default to 1 second
+const totalTimeMinutes = ref(10); // Default to 10 minutes
 const isIntervalRunning = ref(false);
 const timeRemaining = ref(0);
+const totalTimeRemaining = ref(0);
 const intervalId = ref<number | null>(null);
 const timerId = ref<number | null>(null);
 
 const { playCornerAudio, stopAudio: stopAudioPlayer } = useAudioPlayer();
 
 const isCustomizationVisible = ref(false);
-const numberMode = ref(false);
+const numberMode = ref(true);
 const trainingMode = ref<"court" | "body">("body");
 
 const toggleCustomizationVisibility = () => {
@@ -245,9 +270,9 @@ interface BodyPartData {
   enabled: boolean;
 }
 
-const customCorners = ref<CornerData[]>(defaultCorners.map((name) => ({ name, enabled: true })));
+const customCorners = ref<CornerData[]>(defaultCorners.map((_name, index) => ({ name: (index + 1).toString(), enabled: true, index: index + 1 })));
 
-const customBodyParts = ref<BodyPartData[]>(defaultBodyParts.map((name) => ({ name, enabled: true })));
+const customBodyParts = ref<BodyPartData[]>(defaultBodyParts.map((_name, index) => ({ name: (index + 1).toString(), enabled: true, index: index + 1 })));
 
 watch(numberMode, (newValue) => {
   if (newValue) {
@@ -279,6 +304,12 @@ const progressPercentage = computed(() => {
   );
 });
 
+const totalProgressPercentage = computed(() => {
+  const totalTimeMs = totalTimeMinutes.value * 60 * 1000;
+  if (totalTimeMs === 0) return 0;
+  return ((totalTimeMs - totalTimeRemaining.value) / totalTimeMs) * 100;
+});
+
 const formatTime = (ms: number): string => {
   if (ms >= 1000) {
     const seconds = Math.floor(ms / 1000);
@@ -291,6 +322,12 @@ const formatTime = (ms: number): string => {
   } else {
     return `${ms}ms`;
   }
+};
+
+const formatTotalTime = (ms: number): string => {
+  const minutes = Math.floor(ms / (60 * 1000));
+  const seconds = Math.floor((ms % (60 * 1000)) / 1000);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
 const randomStats = ref<{ [key: string]: number }>({});
@@ -314,7 +351,7 @@ const selectRandomCorner = async () => {
     const selectedItemName = availableItems[randomIndex];
 
     randomStats.value[selectedItemName] = (randomStats.value[selectedItemName] ?? 0) + 1;
-    console.log("selectedItemName", { randomStats: randomStats.value });
+    // console.log("selectedItemName", { randomStats: randomStats.value });
 
     // In number mode, find the item index and use the number
     if (numberMode.value) {
@@ -395,6 +432,7 @@ const startInterval = () => {
 
   isIntervalRunning.value = true;
   timeRemaining.value = intervalTime.value;
+  totalTimeRemaining.value = totalTimeMinutes.value * 60 * 1000; // Convert minutes to milliseconds
 
   const runInterval = () => {
     if (!isIntervalRunning.value) return;
@@ -408,6 +446,13 @@ const startInterval = () => {
       if (!isIntervalRunning.value) return;
 
       timeRemaining.value -= 100; // Update every 100ms for smoother display
+      totalTimeRemaining.value -= 100; // Update total time remaining
+
+      // Check if total time has been reached
+      if (totalTimeRemaining.value <= 0) {
+        stopInterval();
+        return;
+      }
 
       if (timeRemaining.value <= 0) {
         // Time to select next corner
@@ -438,6 +483,7 @@ const stopInterval = () => {
   }
 
   timeRemaining.value = 0;
+  totalTimeRemaining.value = 0;
 };
 
 // Cleanup on component unmount

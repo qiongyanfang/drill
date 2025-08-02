@@ -185,7 +185,7 @@ const isPartActive = (partName: string): boolean => {
 }
 
 .part-label {
-  font-size: 0.8rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: #6d3107;
   text-align: center;
