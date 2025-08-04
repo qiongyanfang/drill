@@ -43,7 +43,7 @@
           />
         </div>
         <div class="interval-input-group">
-          <label for="total-time">Total Time (minutes):</label>
+          <label for="total-time">Total minutes:</label>
           <input
             id="total-time"
             v-model.number="totalTimeMinutes"
